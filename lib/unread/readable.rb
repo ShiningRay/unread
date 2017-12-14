@@ -70,7 +70,7 @@ module Unread
 
       def reset_read_marks_for_all
         ReadMark.transaction do
-          ReadMark.delete_all :readable_type => self.base_class.name
+          ReadMark.where(readable_type: self.base_class.name).delete_all
           ReadMark.connection.execute <<-EOT
             INSERT INTO #{ReadMark.table_name} (member_id, readable_type, timestamp)
             SELECT #{ReadMark.reader_class.primary_key}, '#{self.base_class.name}', '#{Time.current.to_s(:db)}'
@@ -83,7 +83,7 @@ module Unread
         assert_reader(member)
 
         ReadMark.transaction do
-          ReadMark.delete_all :readable_type => self.base_class.name, :member_id => member.id
+          ReadMark.where(:readable_type => self.base_class.name, :member_id => member.id).delete_all 
           ReadMark.create!    :readable_type => self.base_class.name, :member_id=> member.id, :timestamp => Time.current
         end
       end
